@@ -1,0 +1,79 @@
+{
+  "tuples": [
+    {"user": "user:alice", "relation": "member", "object": "group:hr"},
+    {"user": "user:helen", "relation": "member", "object": "group:hr"},
+    {"user": "user:helen", "relation": "member", "object": "group:hr_managers"},
+    {"user": "user:bob", "relation": "member", "object": "group:finance"},
+    {"user": "user:frank", "relation": "member", "object": "group:finance"},
+    {"user": "user:frank", "relation": "member", "object": "group:finance_managers"},
+    {"user": "user:charlie", "relation": "member", "object": "group:sales"},
+    {"user": "user:sara", "relation": "member", "object": "group:sales"},
+    {"user": "user:sara", "relation": "member", "object": "group:sales_managers"},
+    {"user": "user:david", "relation": "member", "object": "group:it"},
+    {"user": "user:irene", "relation": "member", "object": "group:it"},
+    {"user": "user:irene", "relation": "member", "object": "group:it_admins"},
+
+    {"user": "group:hr#member", "relation": "member", "object": "department:hr"},
+    {"user": "group:hr_managers#member", "relation": "member", "object": "department:hr"},
+    {"user": "group:finance#member", "relation": "member", "object": "department:finance"},
+    {"user": "group:finance_managers#member", "relation": "member", "object": "department:finance"},
+    {"user": "group:sales#member", "relation": "member", "object": "department:sales"},
+    {"user": "group:sales_managers#member", "relation": "member", "object": "department:sales"},
+    {"user": "group:it#member", "relation": "member", "object": "department:it"},
+    {"user": "group:it_admins#member", "relation": "member", "object": "department:it"},
+
+    {"user": "group:hr#member", "relation": "viewer", "object": "document:doc_employee_handbook"},
+    {"user": "group:hr#member", "relation": "viewer", "object": "document:doc_leave_policy"},
+    {"user": "group:hr#member", "relation": "viewer", "object": "document:doc_onboarding_policy"},
+    {"user": "group:hr#member", "relation": "viewer", "object": "document:doc_performance_guidelines"},
+    {"user": "group:hr_managers#member", "relation": "viewer", "object": "document:doc_salary_records"},
+    {"user": "group:hr_managers#member", "relation": "viewer", "object": "document:doc_performance_reviews"},
+
+    {"user": "group:finance#member", "relation": "viewer", "object": "document:doc_financial_statements"},
+    {"user": "group:finance#member", "relation": "viewer", "object": "document:doc_quarterly_revenue"},
+    {"user": "group:finance#member", "relation": "viewer", "object": "document:doc_department_budget"},
+    {"user": "group:finance_managers#member", "relation": "viewer", "object": "document:doc_payroll_reconciliation"},
+    {"user": "group:finance_managers#member", "relation": "viewer", "object": "document:doc_financial_forecast"},
+
+    {"user": "group:sales#member", "relation": "viewer", "object": "document:doc_customer_information"},
+    {"user": "group:sales#member", "relation": "viewer", "object": "document:doc_sales_pipeline"},
+    {"user": "group:sales#member", "relation": "viewer", "object": "document:doc_quarterly_sales"},
+    {"user": "group:sales_managers#member", "relation": "viewer", "object": "document:doc_pricing_strategy"},
+    {"user": "group:sales_managers#member", "relation": "viewer", "object": "document:doc_sales_forecast"},
+
+    {"user": "group:it#member", "relation": "viewer", "object": "document:doc_infrastructure_arch"},
+    {"user": "group:it#member", "relation": "viewer", "object": "document:doc_server_runbook"},
+    {"user": "group:it#member", "relation": "viewer", "object": "document:doc_access_policy"},
+    {"user": "group:it_admins#member", "relation": "viewer", "object": "document:doc_security_incidents"},
+    {"user": "group:it_admins#member", "relation": "viewer", "object": "document:doc_database_docs"},
+
+    {"user": "department:hr#member", "relation": "viewer", "object": "document:doc_company_handbook"},
+    {"user": "department:finance#member", "relation": "viewer", "object": "document:doc_company_handbook"},
+    {"user": "department:sales#member", "relation": "viewer", "object": "document:doc_company_handbook"},
+    {"user": "department:it#member", "relation": "viewer", "object": "document:doc_company_handbook"},
+
+    {"user": "department:hr#member", "relation": "viewer", "object": "document:doc_it_usage_policy"},
+    {"user": "department:finance#member", "relation": "viewer", "object": "document:doc_it_usage_policy"},
+    {"user": "department:sales#member", "relation": "viewer", "object": "document:doc_it_usage_policy"},
+    {"user": "department:it#member", "relation": "viewer", "object": "document:doc_it_usage_policy"},
+
+    {"user": "department:hr#member", "relation": "viewer", "object": "document:doc_org_structure"},
+    {"user": "department:finance#member", "relation": "viewer", "object": "document:doc_org_structure"},
+    {"user": "department:sales#member", "relation": "viewer", "object": "document:doc_org_structure"},
+    {"user": "department:it#member", "relation": "viewer", "object": "document:doc_org_structure"},
+
+    {"user": "department:hr#member", "relation": "viewer", "object": "document:doc_general_policies"},
+    {"user": "department:finance#member", "relation": "viewer", "object": "document:doc_general_policies"},
+    {"user": "department:sales#member", "relation": "viewer", "object": "document:doc_general_policies"},
+    {"user": "department:it#member", "relation": "viewer", "object": "document:doc_general_policies"},
+
+    {"user": "group:hr#member", "relation": "viewer", "object": "folder:folder_hr"},
+    {"user": "group:hr_managers#member", "relation": "editor", "object": "folder:folder_hr"},
+    {"user": "group:finance#member", "relation": "viewer", "object": "folder:folder_finance"},
+    {"user": "group:finance_managers#member", "relation": "editor", "object": "folder:folder_finance"},
+    {"user": "group:sales#member", "relation": "viewer", "object": "folder:folder_sales"},
+    {"user": "group:sales_managers#member", "relation": "editor", "object": "folder:folder_sales"},
+    {"user": "group:it#member", "relation": "viewer", "object": "folder:folder_it"},
+    {"user": "group:it_admins#member", "relation": "editor", "object": "folder:folder_it"}
+  ]
+}

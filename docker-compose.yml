@@ -1,0 +1,154 @@
+services:
+  # ================================================================
+  # PostgreSQL with pgvector
+  # Hosts both governance_db and openfga_db
+  # ================================================================
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: edg_postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-governance_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-governance_password}
+      POSTGRES_DB: governance_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-governance_user} -d governance_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - edg_network
+    restart: unless-stopped
+
+  # ================================================================
+  # OpenFGA Migration (runs once before server starts)
+  # ================================================================
+  openfga-migrate:
+    image: openfga/openfga:latest
+    container_name: edg_openfga_migrate
+    command: migrate
+    environment:
+      OPENFGA_DATASTORE_ENGINE: postgres
+      OPENFGA_DATASTORE_URI: postgres://${POSTGRES_USER:-governance_user}:${POSTGRES_PASSWORD:-governance_password}@postgres:5432/openfga_db?sslmode=disable
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - edg_network
+    restart: on-failure
+
+  # ================================================================
+  # OpenFGA — Zanzibar-inspired Authorization Engine
+  # ================================================================
+  openfga:
+    image: openfga/openfga:latest
+    container_name: edg_openfga
+    command: run
+    environment:
+      OPENFGA_DATASTORE_ENGINE: postgres
+      OPENFGA_DATASTORE_URI: postgres://${POSTGRES_USER:-governance_user}:${POSTGRES_PASSWORD:-governance_password}@postgres:5432/openfga_db?sslmode=disable
+      OPENFGA_HTTP_ADDR: 0.0.0.0:8080
+      OPENFGA_GRPC_ADDR: 0.0.0.0:8081
+      OPENFGA_LOG_FORMAT: json
+      OPENFGA_LOG_LEVEL: info
+      OPENFGA_PLAYGROUND_ENABLED: "true"
+      OPENFGA_METRICS_ENABLED: "true"
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+      - "3000:3000"  # Playground
+    depends_on:
+      openfga-migrate:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "/openfga", "version"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    networks:
+      - edg_network
+    restart: unless-stopped
+
+  # ================================================================
+  # Backend — FastAPI Application
+  # ================================================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: edg_backend
+    environment:
+      APP_ENV: ${APP_ENV:-development}
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-governance_user}:${POSTGRES_PASSWORD:-governance_password}@postgres:5432/governance_db
+      OPENFGA_API_URL: http://openfga:8080
+      OPENFGA_STORE_ID: ${OPENFGA_STORE_ID:-}
+      OPENFGA_AUTH_MODEL_ID: ${OPENFGA_AUTH_MODEL_ID:-}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-change-me-generate-with-openssl-rand-hex-32}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+      JWT_ACCESS_TOKEN_EXPIRE_MINUTES: ${JWT_ACCESS_TOKEN_EXPIRE_MINUTES:-60}
+      LLM_PROVIDER: ${LLM_PROVIDER:-mock}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.2}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-sentence-transformers/all-MiniLM-L6-v2}
+      EMBEDDING_DIMENSION: ${EMBEDDING_DIMENSION:-384}
+      DOCUMENT_UPLOAD_DIR: /app/data/uploads
+      RETRIEVAL_TOP_K: ${RETRIEVAL_TOP_K:-5}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173,http://localhost:3000}
+    ports:
+      - "8000:8000"
+    volumes:
+      - document_uploads:/app/data/uploads
+      - ./backend/src:/app/src:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      openfga:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - edg_network
+    restart: unless-stopped
+
+  # ================================================================
+  # Frontend — React + TypeScript (Vite + Nginx)
+  # ================================================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: edg_frontend
+    environment:
+      VITE_API_BASE_URL: http://localhost:8000
+    ports:
+      - "5173:5173"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - edg_network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    name: edg_postgres_data
+  document_uploads:
+    name: edg_document_uploads
+
+networks:
+  edg_network:
+    name: edg_network
+    driver: bridge

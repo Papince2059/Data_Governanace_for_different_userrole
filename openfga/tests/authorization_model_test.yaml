@@ -1,0 +1,106 @@
+name: Enterprise Data Governance Authorization Model Tests
+model_file: ../model.fga
+tuples:
+  # Groups
+  - user: user:alice
+    relation: member
+    object: group:hr
+  - user: user:helen
+    relation: member
+    object: group:hr
+  - user: user:helen
+    relation: member
+    object: group:hr_managers
+  - user: user:bob
+    relation: member
+    object: group:finance
+  - user: user:frank
+    relation: member
+    object: group:finance_managers
+  - user: user:charlie
+    relation: member
+    object: group:sales
+  - user: user:david
+    relation: member
+    object: group:it
+  - user: user:irene
+    relation: member
+    object: group:it_admins
+
+  # Document permissions
+  - user: group:hr#member
+    relation: viewer
+    object: document:doc_leave_policy
+  - user: group:hr_managers#member
+    relation: viewer
+    object: document:doc_salary_records
+  - user: group:finance#member
+    relation: viewer
+    object: document:doc_quarterly_revenue
+  - user: group:sales#member
+    relation: viewer
+    object: document:doc_sales_pipeline
+  - user: group:it#member
+    relation: viewer
+    object: document:doc_server_runbook
+  - user: group:it_admins#member
+    relation: viewer
+    object: document:doc_security_incidents
+
+tests:
+  - name: Alice can read leave policy
+    check:
+      - user: user:alice
+        relation: can_read
+        object: document:doc_leave_policy
+        assertions:
+          true: true
+
+  - name: Alice cannot read confidential salary records
+    check:
+      - user: user:alice
+        relation: can_read
+        object: document:doc_salary_records
+        assertions:
+          false: true
+
+  - name: Helen can read confidential salary records
+    check:
+      - user: user:helen
+        relation: can_read
+        object: document:doc_salary_records
+        assertions:
+          true: true
+
+  - name: Alice cannot read finance quarterly revenue
+    check:
+      - user: user:alice
+        relation: can_read
+        object: document:doc_quarterly_revenue
+        assertions:
+          false: true
+
+  - name: Bob can read finance quarterly revenue
+    check:
+      - user: user:bob
+        relation: can_read
+        object: document:doc_quarterly_revenue
+        assertions:
+          true: true
+
+  - name: David cannot read restricted IT security incidents
+    check:
+      - user: user:david
+        relation: can_read
+        object: document:doc_security_incidents
+        assertions:
+          false: true
+
+  - name: Irene can read IT security incidents
+    check:
+      - user: user:irene
+        relation: can_read
+        object: document:doc_security_incidents
+        assertions:
+          true: true
+
