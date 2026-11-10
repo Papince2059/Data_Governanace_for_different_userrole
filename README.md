@@ -37,25 +37,25 @@ Examples:
 
 ```mermaid
 flowchart TD
-    User([Authenticated User: Alice]) -->|1. Submit Question| API[FastAPI Gateway]
-    API -->|2. Extract Identity & Tenant| JWT[JWT Validator]
-    JWT -->|3. user:alice| FGA[OpenFGA Zanzibar Engine]
-    FGA -->|4. ListObjects 'can_read'| ACL[Authorized Doc IDs: doc_handbook, doc_leave]
+    User(["Authenticated User: Alice"]) -->|"1. Submit Question"| API["FastAPI Gateway"]
+    API -->|"2. Extract Identity & Tenant"| JWT["JWT Validator"]
+    JWT -->|"3. user:alice"| FGA["OpenFGA Zanzibar Engine"]
+    FGA -->|"4. ListObjects can_read"| ACL["Authorized Doc IDs: doc_handbook, doc_leave"]
     
-    subgraph FailClosed [Fail-Closed Gate]
-        ACL -->|Empty?| Block[Return Empty / Skip Search]
+    subgraph FailClosed ["Fail-Closed Gate"]
+        ACL -->|"Empty?"| Block["Return Empty / Skip Search"]
     end
     
-    ACL -->|5. Authorized IDs + Tenant| SQL[(PostgreSQL + pgvector)]
-    API -->|6. Local Embedding: MiniLM| SQL
+    ACL -->|"5. Authorized IDs + Tenant"| SQL[("PostgreSQL + pgvector")]
+    API -->|"6. Local Embedding: MiniLM"| SQL
     
-    subgraph PostgresQuery [SQL Query with WHERE Filter]
-        SQL -->|WHERE id = ANY(authorized_ids) AND tenant_id = tenant| Chunks[Authorized Chunks Only]
+    subgraph PostgresQuery ["SQL Query with WHERE Filter"]
+        SQL -->|"WHERE id = ANY(authorized_ids) AND tenant_id = tenant"| Chunks["Authorized Chunks Only"]
     end
     
-    Chunks -->|7. Verified Context| Prompt[LLM Prompt Builder]
-    Prompt -->|8. Stream Tokens via SSE| LLM[LLM Provider: Vertex AI (Gemini) / Ollama / Mock]
-    LLM -->|9. Token Stream + Citations| User
+    Chunks -->|"7. Verified Context"| Prompt["LLM Prompt Builder"]
+    Prompt -->|"8. Stream Tokens via SSE"| LLM["LLM Provider: Vertex AI / Ollama / Mock"]
+    LLM -->|"9. Token Stream + Citations"| User
 ```
 
 ### Pre-Retrieval vs Post-Retrieval Comparison
@@ -74,41 +74,41 @@ flowchart TD
 
 ```mermaid
 graph TB
-    subgraph ClientLayer [Client & Management Layer]
-        UI[React 18 + Vite Frontend<br/>Port 5173]
-        CLI[cURL / REST Clients]
+    subgraph ClientLayer ["Client & Management Layer"]
+        UI["React 18 + Vite Frontend<br/>Port 5173"]
+        CLI["cURL / REST Clients"]
     end
 
-    subgraph GatewayLayer [API & Application Service]
-        API[FastAPI Backend<br/>Port 8000]
-        AuthSvc[AuthorizationService]
-        RetrSvc[RetrievalService]
-        ChatSvc[ChatService SSE]
-        IngestSvc[IngestionPipeline]
-        Embedder[LocalEmbedder<br/>all-MiniLM-L6-v2]
+    subgraph GatewayLayer ["API & Application Service"]
+        API["FastAPI Backend<br/>Port 8000"]
+        AuthSvc["AuthorizationService"]
+        RetrSvc["RetrievalService"]
+        ChatSvc["ChatService SSE"]
+        IngestSvc["IngestionPipeline"]
+        Embedder["LocalEmbedder<br/>all-MiniLM-L6-v2"]
     end
 
-    subgraph AuthEngine [Zanzibar Engine]
-        OpenFGA[OpenFGA Daemon<br/>Port 8080 / 8081]
+    subgraph AuthEngine ["Zanzibar Engine"]
+        OpenFGA["OpenFGA Daemon<br/>Port 8080 / 8081"]
     end
 
-    subgraph DataStorage [Centralized Local PostgreSQL 16]
-        PG_App[(governance_db<br/>Documents, Chunks, Embeddings,<br/>Users, Audit Logs)]
-        PG_FGA[(openfga_db<br/>Zanzibar Relationship Tuples)]
+    subgraph DataStorage ["Centralized Local PostgreSQL 16"]
+        PG_App[("governance_db<br/>Documents, Chunks, Embeddings,<br/>Users, Audit Logs")]
+        PG_FGA[("openfga_db<br/>Zanzibar Relationship Tuples")]
     end
 
-    UI -->|HTTP / SSE| API
-    CLI -->|HTTP / SSE| API
+    UI -->|"HTTP / SSE"| API
+    CLI -->|"HTTP / SSE"| API
     API --> AuthSvc
     API --> RetrSvc
     API --> ChatSvc
     API --> IngestSvc
     RetrSvc --> Embedder
-    AuthSvc -->|REST / ListObjects| OpenFGA
-    OpenFGA -->|Store Tuples| PG_FGA
-    RetrSvc -->|Parameterized Vector SQL| PG_App
-    IngestSvc -->|Store Chunks & Vectors| PG_App
-    IngestSvc -->|Register Tuples| OpenFGA
+    AuthSvc -->|"REST / ListObjects"| OpenFGA
+    OpenFGA -->|"Store Tuples"| PG_FGA
+    RetrSvc -->|"Parameterized Vector SQL"| PG_App
+    IngestSvc -->|"Store Chunks & Vectors"| PG_App
+    IngestSvc -->|"Register Tuples"| OpenFGA
 ```
 
 ---
